@@ -12,7 +12,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             LayoutsCodelabTheme {
-
+                LayoutsCodelab()
             }
         }
     }
@@ -21,5 +21,5 @@ class MainActivity : ComponentActivity() {
 @Preview
 @Composable
 fun Preview() {
-    MyOwnColumnPreview()
+    LayoutsCodelabPreview()
 }
