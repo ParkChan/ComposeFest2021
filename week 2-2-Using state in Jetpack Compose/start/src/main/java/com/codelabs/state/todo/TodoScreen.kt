@@ -121,25 +121,6 @@ fun TodoItemInput(onItemComplete: (TodoItem) -> Unit) {
         setIcon(TodoIcon.Default)
         setText("")
     }
-    TodoItemInput(
-        text = text,
-        onTextChange = setText,
-        icon = icon,
-        onIconChange = setIcon,
-        submit = submit,
-        iconsVisible = iconsVisible
-    )
-}
-
-@Composable
-fun TodoItemInput(
-    text: String,
-    onTextChange: (String) -> Unit,
-    icon: TodoIcon,
-    onIconChange: (TodoIcon) -> Unit,
-    submit: () -> Unit,
-    iconsVisible: Boolean
-) {
     Column {
         Row(
             Modifier
@@ -148,8 +129,8 @@ fun TodoItemInput(
         ) {
             TodoInputText(
                 text = text,
-                onTextChange = onTextChange,
-                modifier = Modifier
+                onTextChange = setText,
+                Modifier
                     .weight(1f)
                     .padding(end = 8.dp),
                 onImeAction = submit // pass the submit callback to TodoInputText
@@ -162,7 +143,7 @@ fun TodoItemInput(
             )
         }
         if (iconsVisible) {
-            AnimatedIconRow(icon, onIconChange, Modifier.padding(top = 8.dp))
+            AnimatedIconRow(icon, setIcon, Modifier.padding(top = 8.dp))
         } else {
             Spacer(modifier = Modifier.height(16.dp))
         }
