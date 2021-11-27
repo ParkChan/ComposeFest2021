@@ -313,7 +313,17 @@ private fun EditMessage(shown: Boolean) {
     // TODO 2-2: The message should slide down from the top on appearance and slide up on
     //           disappearance.
     AnimatedVisibility(
-        visible = shown
+        visible = shown,
+        enter = slideInVertically(
+            // 오프셋이 -(전체높이)에서 0으로 슬라이딩 하여 내려온다.
+            initialOffsetY = { fullHeight -> -fullHeight },
+            animationSpec = tween(durationMillis = 150, easing = LinearOutSlowInEasing)
+        ),
+        exit = slideOutVertically(
+            // 오프셋이 0에서 -(전체높이)로 슬라이딩 하여 올라간다.
+            targetOffsetY = { fullHeight -> -fullHeight },
+            animationSpec = tween(durationMillis = 250, easing = FastOutLinearInEasing)
+        )
     ) {
         Surface(
             modifier = Modifier.fillMaxWidth(),
@@ -326,6 +336,7 @@ private fun EditMessage(shown: Boolean) {
             )
         }
     }
+
 }
 
 /**
