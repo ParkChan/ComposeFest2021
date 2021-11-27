@@ -679,46 +679,62 @@ private fun TaskRow(task: String, onRemove: () -> Unit) {
 private fun Modifier.swipeToDismiss(
     onDismissed: () -> Unit
 ): Modifier = composed {
-    // TODO 6-1: Create an Animatable instance for the offset of the swiped element.
+    // 이 `Animatable` 요소에 대한 수평 오프셋을 저장한다.
+    val offsetX = remember { Animatable(0f) }
     pointerInput(Unit) {
-        // Used to calculate a settling position of a fling animation.
+        // 플링 애니메이션에서 정착될 포지션을 계산하는데 사용된다.
         val decay = splineBasedDecay<Float>(this)
-        // Wrap in a coroutine scope to use suspend functions for touch events and animation.
+        // 코루틴 스코프로 감싸 터치이벤트 및 애니메이션에 대한 suspend 함수를 사용할 수 있도록 한다.
         coroutineScope {
             while (true) {
-                // Wait for a touch down event.
+                // 터치 다운 이벤트를 기다린다.
                 val pointerId = awaitPointerEventScope { awaitFirstDown().id }
-                // TODO 6-2: Touch detected; the animation should be stopped.
-                // Prepare for drag events and record velocity of a fling.
+                // 진행중인 이벤트를 멈춘다.
+                offsetX.stop()
+                // 드래그 이벤트를 위해 준비하고 플링 속도를 기록한다.
                 val velocityTracker = VelocityTracker()
-                // Wait for drag events.
+                // 드래그 이벤트를 기다린다.
                 awaitPointerEventScope {
                     horizontalDrag(pointerId) { change ->
-                        // TODO 6-3: Apply the drag change to the Animatable offset.
-                        // Record the velocity of the drag.
+                        // 오프셋 이후 포지션을 기록한다.
+                        val horizontalDragOffset = offsetX.value + change.positionChange().x
+                        launch {
+                            // 요소가 드래그 되는 동안 `Animatable` 값을 덮어쓴다.
+                            offsetX.snapTo(horizontalDragOffset)
+                        }
+                        // 드래그 속도를 기록한다.
                         velocityTracker.addPosition(change.uptimeMillis, change.position)
-                        // Consume the gesture event, not passed to external
+                        // 제스처 이벤트를 소비하고 외부로 전달하지 않는다.
                         change.consumePositionChange()
                     }
                 }
-                // Dragging finished. Calculate the velocity of the fling.
+                // 드래그가 끝났다. 플링 속도를 계산한다.
                 val velocity = velocityTracker.calculateVelocity().x
-                // TODO 6-4: Calculate the eventual position where the fling should settle
-                //           based on the current offset value and velocity
-                // TODO 6-5: Set the upper and lower bounds so that the animation stops when it
-                //           reaches the edge.
+                // 플링 애니메이션 이후에 해당 요소가 궁극적으로 정착될 위치를 계산한다.
+                val targetOffsetX = decay.calculateTargetValue(offsetX.value, velocity)
+                // 애니메이션은 경계에 도달하자마자 끝나야 한다.
+                offsetX.updateBounds(
+                    lowerBound = -size.width.toFloat(),
+                    upperBound = size.width.toFloat()
+                )
                 launch {
-                    // TODO 6-6: Slide back the element if the settling position does not go beyond
-                    //           the size of the element. Remove the element if it does.
+                    if (targetOffsetX.absoluteValue <= size.width) {
+                        // 속도가 충분하지 않다; 기본 위치로 다시 슬라이드해 돌려놓는다.
+                        offsetX.animateTo(targetValue = 0f, initialVelocity = velocity)
+                    } else {
+                        // 해당 요소를 가장자리로 밀어내기에 속도가 충분하다
+                        offsetX.animateDecay(velocity, decay)
+                        // 해당 요소가 스와이프 되었다.
+                        onDismissed()
+                    }
                 }
             }
         }
     }
-        .offset {
-            // TODO 6-7: Use the animating offset value here.
-            IntOffset(0, 0)
-        }
+        // 해당요소에 수평 오프셋을 적용하자.
+        .offset { IntOffset(offsetX.value.roundToInt(), 0) }
 }
+
 
 @Preview
 @Composable
