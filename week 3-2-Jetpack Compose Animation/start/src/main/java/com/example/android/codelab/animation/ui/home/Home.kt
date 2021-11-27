@@ -479,9 +479,47 @@ private fun HomeTabIndicator(
     tabPage: TabPage
 ) {
     // TODO 4: Animate these value changes.
-    val indicatorLeft = tabPositions[tabPage.ordinal].left
-    val indicatorRight = tabPositions[tabPage.ordinal].right
-    val color = if (tabPage == TabPage.Home) Purple700 else Green800
+    val transition = updateTransition(
+        tabPage,
+        label = "Tab indicator"
+    )
+    val indicatorLeft by transition.animateDp(
+        transitionSpec = {
+            if (TabPage.Home isTransitioningTo TabPage.Work) {
+                // 인디케이터가 오른쪽으로 이동한다.
+                // 왼쪽 엣지가 오른쪽 엣지보다 천천히 이동한다.
+                spring(stiffness = Spring.StiffnessVeryLow)
+            } else {
+                // 인디케이터가 왼쪽으로 이동한다.
+                // 왼쪽 엣지가 오른쪽 엣지보다 빠르게 이동한다.
+                spring(stiffness = Spring.StiffnessMedium)
+            }
+        },
+        label = "Indicator left"
+    ) { page ->
+        tabPositions[page.ordinal].left
+    }
+    val indicatorRight by transition.animateDp(
+        transitionSpec = {
+            if (TabPage.Home isTransitioningTo TabPage.Work) {
+                // 인디케이터가 오른쪽으로 이동한다.
+                // 오른쪽 엣지가 왼쪽 엣지보다 빠르게 이동한다.
+                spring(stiffness = Spring.StiffnessMedium)
+            } else {
+                // 인디케이터가 왼쪽으로 이동한다.
+                // 오른쪽 엣지가 왼쪽 엣지보다 느리게 이동한다.
+                spring(stiffness = Spring.StiffnessVeryLow)
+            }
+        },
+        label = "Indicator right"
+    ) { page ->
+        tabPositions[page.ordinal].right
+    }
+    val color by transition.animateColor(
+        label = "Border color"
+    ) { page ->
+        if (page == TabPage.Home) Purple700 else Green800
+    }
     Box(
         Modifier
             .fillMaxSize()
