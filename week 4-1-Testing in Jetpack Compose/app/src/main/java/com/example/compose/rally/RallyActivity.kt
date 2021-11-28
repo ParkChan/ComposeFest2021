@@ -21,18 +21,23 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavHostController
+import com.example.compose.rally.RallyScreen.Accounts
+import com.example.compose.rally.RallyScreen.Bills
+import com.example.compose.rally.RallyScreen.Overview
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.compose.rally.data.UserData
 import com.example.compose.rally.ui.accounts.AccountsBody
+import com.example.compose.rally.ui.accounts.SingleAccountBody
 import com.example.compose.rally.ui.bills.BillsBody
 import com.example.compose.rally.ui.components.RallyTabRow
-import com.example.compose.rally.ui.components.RallyTopAppBar
 import com.example.compose.rally.ui.overview.OverviewBody
 import com.example.compose.rally.ui.theme.RallyTheme
 
@@ -55,9 +60,7 @@ fun RallyApp() {
         val allScreens = RallyScreen.values().toList()
         val navController = rememberNavController()
         val backstackEntry = navController.currentBackStackEntryAsState()
-        val currentScreen = RallyScreen.fromRoute(
-            backstackEntry.value?.destination?.route
-        )
+        val currentScreen = RallyScreen.fromRoute(backstackEntry.value?.destination?.route)
 
         Scaffold(
             topBar = {
@@ -72,19 +75,55 @@ fun RallyApp() {
         ) { innerPadding ->
             NavHost(
                 navController = navController,
-                startDestination = RallyScreen.Overview.name,
+                startDestination = Overview.name,
                 modifier = Modifier.padding(innerPadding)
             ) {
-                composable(RallyScreen.Overview.name){
-                    OverviewBody()
+
+                val accountsName = Accounts.name
+
+                composable(
+                    "$accountsName/{name}",
+                    arguments = listOf(
+                        navArgument("name") {
+                            // Make argument type safe
+                            type = NavType.StringType
+                        }
+                    )
+                ) { entry -> // NavBackStackEntry의 인자들중 "name"을 검색한다.
+                    val accountName = entry.arguments?.getString("name")
+                    // UserData에서 일치하는 첫번째 이름을 찾는다.
+                    val account = UserData.getAccount(accountName)
+                    // 계좌를 SingleAccountBody로 전달한다.
+                    SingleAccountBody(account = account)
                 }
-                composable(RallyScreen.Accounts.name) {
-                    AccountsBody(accounts = UserData.accounts)
+
+                composable(Overview.name) {
+                    OverviewBody(
+                        onClickSeeAllAccounts = { navController.navigate(Accounts.name) },
+                        onClickSeeAllBills = { navController.navigate(Bills.name) },
+                        onAccountClick = { name ->
+                        navigateToSingleAccount(navController, name)
+                    })
                 }
-                composable(RallyScreen.Bills.name) {
+                composable(Accounts.name) {
+                    AccountsBody(accounts = UserData.accounts) { name ->
+                        navigateToSingleAccount(
+                            navController = navController,
+                            accountName = name
+                        )
+                    }
+                }
+                composable(Bills.name) {
                     BillsBody(bills = UserData.bills)
                 }
             }
         }
     }
+}
+
+private fun navigateToSingleAccount(
+    navController: NavHostController,
+    accountName: String
+) {
+    navController.navigate("${RallyScreen.Accounts.name}/$accountName")
 }

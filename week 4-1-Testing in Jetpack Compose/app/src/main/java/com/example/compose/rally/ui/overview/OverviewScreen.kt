@@ -19,6 +19,7 @@ package com.example.compose.rally.ui.overview
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -67,7 +68,7 @@ import java.util.Locale
 fun OverviewBody(
     onClickSeeAllAccounts: () -> Unit = {},
     onClickSeeAllBills: () -> Unit = {},
-    onAccountClick: (String) -> Unit = {}
+    onAccountClick: (String) -> Unit = {},
 ) {
     Column(
         modifier = Modifier
@@ -82,7 +83,6 @@ fun OverviewBody(
         BillsCard(onClickSeeAllBills)
     }
 }
-
 /**
  * The Alerts card within the Rally Overview screen.
  */
@@ -245,10 +245,7 @@ private fun <T> OverViewDivider(
  * The Accounts card within the Rally Overview screen.
  */
 @Composable
-private fun AccountsCard(
-    onClickSeeAll: () -> Unit,
-    onAccountClick: (String) -> Unit
-) {
+private fun AccountsCard(onClickSeeAll: () -> Unit, onAccountClick: (String) -> Unit) {
     val amount = UserData.accounts.map { account -> account.balance }.sum()
     OverviewScreenCard(
         title = stringResource(R.string.accounts),
@@ -259,6 +256,7 @@ private fun AccountsCard(
         values = { it.balance }
     ) { account ->
         AccountRow(
+            modifier = Modifier.clickable { onAccountClick(account.name) },
             name = account.name,
             number = account.number,
             amount = account.balance,
