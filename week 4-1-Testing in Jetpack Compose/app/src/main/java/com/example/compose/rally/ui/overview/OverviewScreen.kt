@@ -48,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -63,17 +64,22 @@ import com.example.compose.rally.ui.theme.RallyTheme
 import java.util.Locale
 
 @Composable
-fun OverviewBody(onScreenChange: (RallyScreen) -> Unit = {}) {
+fun OverviewBody(
+    onClickSeeAllAccounts: () -> Unit = {},
+    onClickSeeAllBills: () -> Unit = {},
+    onAccountClick: (String) -> Unit = {}
+) {
     Column(
         modifier = Modifier
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
+            .semantics { contentDescription = "Overview Screen" }
     ) {
         AlertCard()
         Spacer(Modifier.height(RallyDefaultPadding))
-        AccountsCard(onScreenChange)
+        AccountsCard(onClickSeeAllAccounts, onAccountClick = onAccountClick)
         Spacer(Modifier.height(RallyDefaultPadding))
-        BillsCard(onScreenChange)
+        BillsCard(onClickSeeAllBills)
     }
 }
 
@@ -239,14 +245,15 @@ private fun <T> OverViewDivider(
  * The Accounts card within the Rally Overview screen.
  */
 @Composable
-private fun AccountsCard(onScreenChange: (RallyScreen) -> Unit) {
+private fun AccountsCard(
+    onClickSeeAll: () -> Unit,
+    onAccountClick: (String) -> Unit
+) {
     val amount = UserData.accounts.map { account -> account.balance }.sum()
     OverviewScreenCard(
         title = stringResource(R.string.accounts),
         amount = amount,
-        onClickSeeAll = {
-            onScreenChange(RallyScreen.Accounts)
-        },
+        onClickSeeAll = onClickSeeAll,
         data = UserData.accounts,
         colors = { it.color },
         values = { it.balance }
@@ -264,14 +271,12 @@ private fun AccountsCard(onScreenChange: (RallyScreen) -> Unit) {
  * The Bills card within the Rally Overview screen.
  */
 @Composable
-private fun BillsCard(onScreenChange: (RallyScreen) -> Unit) {
+private fun BillsCard(onClickSeeAll: () -> Unit) {
     val amount = UserData.bills.map { bill -> bill.amount }.sum()
     OverviewScreenCard(
         title = stringResource(R.string.bills),
         amount = amount,
-        onClickSeeAll = {
-            onScreenChange(RallyScreen.Bills)
-        },
+        onClickSeeAll = onClickSeeAll,
         data = UserData.bills,
         colors = { it.color },
         values = { it.amount }
