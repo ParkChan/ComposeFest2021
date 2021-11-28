@@ -33,6 +33,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import com.example.compose.rally.data.UserData
 import com.example.compose.rally.ui.accounts.AccountsBody
 import com.example.compose.rally.ui.accounts.SingleAccountBody
@@ -82,18 +83,21 @@ fun RallyApp() {
                 val accountsName = Accounts.name
 
                 composable(
-                    "$accountsName/{name}",
+                    route = "$accountsName/{name}",
                     arguments = listOf(
                         navArgument("name") {
                             // Make argument type safe
                             type = NavType.StringType
                         }
-                    )
-                ) { entry -> // NavBackStackEntry의 인자들중 "name"을 검색한다.
+                    ),
+                    deepLinks = listOf(
+                        navDeepLink {
+                            uriPattern = "rally://$accountsName/{name}"
+                        }
+                    ),
+                ) { entry ->
                     val accountName = entry.arguments?.getString("name")
-                    // UserData에서 일치하는 첫번째 이름을 찾는다.
                     val account = UserData.getAccount(accountName)
-                    // 계좌를 SingleAccountBody로 전달한다.
                     SingleAccountBody(account = account)
                 }
 
